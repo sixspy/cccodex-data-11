@@ -54,6 +54,29 @@ def init_db(app):
                 fetched_at TEXT NOT NULL DEFAULT (datetime('now')),
                 UNIQUE(job_id, item_key)
             );
+            CREATE TABLE IF NOT EXISTS job_list_entries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                job_id INTEGER NOT NULL REFERENCES crawl_jobs(id) ON DELETE CASCADE,
+                list_type TEXT NOT NULL CHECK (list_type IN ('must', 'block')),
+                code TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                UNIQUE(job_id, list_type, code)
+            );
+            CREATE TABLE IF NOT EXISTS blocked_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                job_id INTEGER NOT NULL REFERENCES crawl_jobs(id) ON DELETE CASCADE,
+                code TEXT NOT NULL,
+                reason TEXT NOT NULL DEFAULT '不收清单拦截',
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                UNIQUE(job_id, code)
+            );
+            CREATE TABLE IF NOT EXISTS missing_musts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                job_id INTEGER NOT NULL REFERENCES crawl_jobs(id) ON DELETE CASCADE,
+                code TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                UNIQUE(job_id, code)
+            );
             """
         )
         db.commit()

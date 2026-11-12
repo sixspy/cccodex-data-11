@@ -13,8 +13,77 @@
   <p class="muted">已完成于 {{ job.finished_at or '—' }}</p>
   {% endif %}
 </section>
+
+{% if missing %}
+<section class="card missing-card">
+  <h2>缺必收</h2>
+  <p>以下必收编码这次目录里没出现：</p>
+  <ul class="code-list">
+    {% for m in missing %}
+    <li><code>{{ m.code }}</code></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="two-lists">
+  <section class="card list-card">
+    <h2>必收</h2>
+    <p class="muted">本单编码本次目录里必须出现，缺席会在卡片上打出缺必收。</p>
+    {% if list_locked %}
+    <p class="muted locked-note">已锁定：开跑后不能改动</p>
+    {% else %}
+    <form method="post" action="{{ url_for('jobs.add_list_entry', job_id=job.id, list_type='must') }}" class="list-form">
+      <input name="code" placeholder="输入编码" />
+      <button type="submit">加入必收</button>
+    </form>
+    {% endif %}
+    <ul class="code-list">
+      {% for e in must_entries %}
+      <li>
+        <code>{{ e.code }}</code>
+        {% if not list_locked %}
+        <form method="post" action="{{ url_for('jobs.delete_list_entry', job_id=job.id, list_type='must', entry_id=e.id) }}">
+          <button type="submit" class="link-btn">移除</button>
+        </form>
+        {% endif %}
+      </li>
+      {% else %}
+      <li class="muted">暂无编码</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card list-card">
+    <h2>不收</h2>
+    <p class="muted">本单编码开跑后全部进被挡清单，不会落进账册。</p>
+    {% if list_locked %}
+    <p class="muted locked-note">已锁定：开跑后不能改动</p>
+    {% else %}
+    <form method="post" action="{{ url_for('jobs.add_list_entry', job_id=job.id, list_type='block') }}" class="list-form">
+      <input name="code" placeholder="输入编码" />
+      <button type="submit">加入不收</button>
+    </form>
+    {% endif %}
+    <ul class="code-list">
+      {% for e in block_entries %}
+      <li>
+        <code>{{ e.code }}</code>
+        {% if not list_locked %}
+        <form method="post" action="{{ url_for('jobs.delete_list_entry', job_id=job.id, list_type='block', entry_id=e.id) }}">
+          <button type="submit" class="link-btn">移除</button>
+        </form>
+        {% endif %}
+      </li>
+      {% else %}
+      <li class="muted">暂无编码</li>
+      {% endfor %}
+    </ul>
+  </section>
+</section>
+
 <section class="card">
-  <h2>落库记录</h2>
+  <h2>落库记录（账册）</h2>
   <table>
     <thead><tr><th>item_key</th><th>标题</th><th>时间</th></tr></thead>
     <tbody>
@@ -29,5 +98,16 @@
       {% endfor %}
     </tbody>
   </table>
+</section>
+
+<section class="card">
+  <h2>被挡清单</h2>
+  <ul class="code-list">
+    {% for b in blocked %}
+    <li><code>{{ b.code }}</code> <span class="muted">{{ b.reason }}</span></li>
+    {% else %}
+    <li class="muted">尚无被挡编码</li>
+    {% endfor %}
+  </ul>
 </section>
 {% endblock %}
